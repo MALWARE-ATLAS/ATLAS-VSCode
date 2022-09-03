@@ -1,0 +1,26 @@
+{
+	"ATLAS Template": {
+		"prefix": "ATLAS, ATLAS-Template",
+		"body": [
+			"meta:",
+    			"\tname: ",
+    			"\tdescription: ",
+    			"\treference: ",
+    			"\thash: ",
+    			"\tauthor: ",
+    			"\tversion: ",
+			"",
+			"modules:",
+				"\t- ",
+			"",
+			"scripts:",
+    			"\tsample: ",
+			"",
+			"chain:",
+    			"\ts1:",
+        			"\t\tinput: ", 
+        			"\t\tfunc: "
+		],
+		"description": "Basic ATLAS rule template."
+	}
+}

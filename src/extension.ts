@@ -4,19 +4,26 @@ import { ExtensionContext } from "vscode";
 import * as yaml from "js-yaml"
 
 
-var core: {[key:string]: string} = {
-    ' reverse': 'Returns the reverse of the argument.',
-    ' download_from_remote_server': 'Downloads from the server that is passed as a argument.',
-    ' powershell_executor': 'Executes the powershell script that is passed as a argument.',
-    ' file_read_bin': 'Performs binary file read operation.',
-    ' file_read_utf8': 'Performs utf8 file read operation.',
-    ' save_file_bytes': 'Performs binary file write operation.',
-    ' save_file_arr': 'Performs file write one by one according to the list type argument.',
-    ' python_executor': 'Executes the python script that is passed as an argument.',
-    ' printer': 'Prints the arguments by joining them.',
-    ' hello_world': 'Prints “Hello World, ATLAS.” string. Can be used as a test.',
-    ' bytes_to_str_utf8': 'UTF8 decodes byte object.',
-    ' get_sha256': 'Calculates sha256 checksum.'
+var core: {[key:string]: vscode.MarkdownString} = {
+    ' reverse': new vscode.MarkdownString().appendCodeblock('reverse(data: any) -> any', "python").appendMarkdown("Returns the reverse of the argument."),
+    ' download_from_remote_server': new vscode.MarkdownString().appendCodeblock('download_from_remote_server(addr: str) -> bytes', "python").appendMarkdown("Downloads from the server that is passed as a argument."),
+    ' file_read_bin': new vscode.MarkdownString().appendCodeblock('file_read_bin(path: str) -> bytes', "python").appendMarkdown("Performs binary file read operation."),
+    ' powershell_executor': new vscode.MarkdownString().appendCodeblock('powershell_executor(script_name: tuple, \*args) -> any', "python").appendMarkdown("Executes the powershell script that is passed as a argument."),
+    ' file_read_utf8': new vscode.MarkdownString().appendCodeblock('file_read_utf8(path: str) -> str', "python").appendMarkdown("Performs utf8 file read operation."),
+    ' save_file_bytes': new vscode.MarkdownString().appendCodeblock('save_file_bytes(data: any, prefix: str= "") -> str', "python").appendMarkdown("Performs binary file write operation."),
+    ' save_file_arr': new vscode.MarkdownString().appendCodeblock('save_file_arr(arr: List, prefix: str="output") -> bool', "python").appendMarkdown("Performs file write one by one according to the list type argument."),
+    ' python_executor': new vscode.MarkdownString().appendCodeblock('python_executor(script_tuple: tuple, \*args) -> any', "python").appendMarkdown("Executes the python script that is passed as an argument."),
+    ' printer': new vscode.MarkdownString().appendCodeblock('printer(\*args) -> bool', "python").appendMarkdown("Prints the arguments by joining them."),
+    ' hello_world': new vscode.MarkdownString().appendCodeblock('hello_world() -> None', "python").appendMarkdown("Prints “Hello World, ATLAS.” string. Can be used as a test."),
+    ' bytes_to_str_utf8': new vscode.MarkdownString().appendCodeblock('bytes_to_str_utf8(data: bytes=b"") -> str', "python").appendMarkdown("UTF8 decodes byte object."),
+}
+
+var expect: {[key:string]: vscode.MarkdownString} = {
+    ' is_not_none': new vscode.MarkdownString().appendCodeblock('is_not_none(data: any) -> bool', "python").appendMarkdown("Validates whether the argument is None or not."),
+    ' is_not_empty_list': new vscode.MarkdownString().appendCodeblock('is_not_empty_list(data: list) -> bool', "python").appendMarkdown("Validates whether the list type argument is not empty."),
+    ' is_not_empty_dict': new vscode.MarkdownString().appendCodeblock('is_not_empty_dict(data: dict) -> bool', "python").appendMarkdown("Validates whether the dict type argument is not empty."),
+    ' is_not_empty_str': new vscode.MarkdownString().appendCodeblock('is_not_empty_str(data: str) -> bool', "python").appendMarkdown("Validates whether the str type argument is not empty."),
+    ' is_pe': new vscode.MarkdownString().appendCodeblock('is_pe(data: bytes) -> bool', "python").appendMarkdown("Validates whether the argument is \"application/x-dosexec\" or not.")
 }
 
 export function activate(context: ExtensionContext){
@@ -44,13 +51,16 @@ export function activate(context: ExtensionContext){
                         contents: [core[' ' + replaced]]
                     };
                 }
-            } else {
-                console.log(pre_word.replace(/^\s+func\s*:\s*/g, ''))
-                if(pre_word.match(/^\s+func\s*:\s*$/g) != null) {
-                    console.log("hover")
+            } else if(pre_word.match(/^\s+expect\s*:\s*.+?$/g) != null) {
+                let replaced = pre_word.replace(/^\s+expect\s*:\s*/g, '')
+                if(expect[' ' + replaced] != null) {
+                    return {
+                        contents: [expect[' ' + replaced]]
+                    };
                 }
+            } else {
                 return {
-                    contents: ['Hover Content']
+                    contents: []
                 };
             }
         }
@@ -109,6 +119,12 @@ class ATLASCompletionItemProvider implements vscode.CompletionItemProvider {
         } else if(pre_word.match(/^\s+func\s*:\s*$/g) != null) {
             for( var i = 0; i < Object.keys(core).length; i++ ) {
                 items.push(complitionItem(Object.keys(core)[i]))
+            }
+
+            return items
+        } else if(pre_word.match(/^\s+expect\s*:\s*$/g) != null) {
+            for( var i = 0; i < Object.keys(expect).length; i++ ) {
+                items.push(complitionItem(Object.keys(expect)[i]))
             }
 
             return items

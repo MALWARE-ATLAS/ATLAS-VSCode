@@ -27,6 +27,10 @@
   "contributes": {
     "snippets": [
       {
+        "language": "plaintext",
+        "path": "./snippets.json"
+      },
+      {
         "language": "yaml",
         "path": "./snippets.json"
       }
@@ -35,7 +39,9 @@
   "capabilities": {
     "completionProvider": {
       "resolveProvider": "true",
-      "triggerCharacters": "."
+      "triggerCharacters": [
+        ".", "$", ":"
+      ]
     }
   },
   "dependencies": {
