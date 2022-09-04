@@ -14,7 +14,7 @@ The most important feature of this extension is to auto-create and update script
 
 ## Installation
 
-The extension can be installed by VSCode Marketplace directly.
+The extension can be installed by [VSCode Marketplace](https://marketplace.visualstudio.com/items?itemName=r00tten.malware-atlas) directly.
 
 ## Features
 
