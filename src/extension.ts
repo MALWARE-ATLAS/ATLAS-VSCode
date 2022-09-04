@@ -30,6 +30,8 @@ var expect: {[key:string]: MarkdownString} = {
     ' is_pe': new MarkdownString().appendCodeblock('is_pe(data: bytes) -> bool', "python").appendMarkdown("Validates whether the argument is \"application/x-dosexec\" or not.")
 }
 
+var scripts_section: {[key:string]: MarkdownString} = {}
+
 export function activate(context: ExtensionContext){
     vscode.workspace.textDocuments.forEach(doc => {
         if (doc != null && doc.fileName.match(/.atl$/)) {
@@ -62,6 +64,22 @@ export function activate(context: ExtensionContext){
                         contents: [expect[' ' + replaced]]
                     };
                 }
+            } else if(pre_word.match(/\$scripts\..+?$/g) != null) {
+                let replaced = pre_word.replace(/^.*\$scripts\./g, '')
+                if(scripts_section[' ' + replaced] != null) {
+                    return {
+                        contents: [scripts_section[' ' + replaced]]
+                    };
+                }
+            } else if(pre_word.match(/(?<=\s+\w+\s*:\s*(\"|\')).+?(?=\1\s*)/g) != null) {
+                let match = pre_word.match(/(?<=\s+)\w+(?=\s*:\s*(\"|\').+?\1\s*)/g)
+                if(match && match[0] != null) {
+                    if(scripts_section[' ' + match[0]] != null) {
+                        return {
+                            contents: [scripts_section[' ' + match[0]]]
+                        };
+                    }
+                }
             } else {
                 return {
                     contents: []
@@ -92,6 +110,7 @@ export function activate(context: ExtensionContext){
                                 for(const element of scripts) {
                                     var data = fs.readFileSync(path.join(dir_name, element + ".py"))
                                     var content_encoded = Buffer.from(data).toString('base64');
+                                    extract_func(data, element)
 
                                     var pattern = "(?<=\\s+" + element + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
                                     var re = new RegExp(pattern, "g");
@@ -121,7 +140,8 @@ export function activate(context: ExtensionContext){
                     var doc : any = {};
                     var dir_name = path.dirname(editor.document.uri.path)
                     var scripts : string[] = [];
-                    const text = editor.document.getText();
+                    var text = editor.document.getText();
+                    const tab : any = editor.options.tabSize || 4
 
                     const EXTENSION = '.py';
                     var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
@@ -131,12 +151,28 @@ export function activate(context: ExtensionContext){
                     
                     try {
                         doc = yaml.load(text);
-                        scripts = doc['scripts'] || {}
+                        scripts = doc['scripts'] || []
+
                         editor.edit(editBuilder => {
+                        if(scripts.length == 0) {
+                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+                            var multi_line = "\n\nscripts: \n"
                             targetFiles.forEach(element => {
                                 var file_basename : any = element.match(/^.+?(?=\.py$)/g)
                                 var data = fs.readFileSync(path.join(dir_name, element))
                                 var content_encoded = Buffer.from(data).toString('base64');
+                                extract_func(data, file_basename)
+
+                                multi_line += (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
+                                
+                            });
+                            editBuilder.insert(lastLine.range.end, multi_line)
+                        } else {
+                            targetFiles.forEach(element => {
+                                var file_basename : any = element.match(/^.+?(?=\.py$)/g)
+                                var data = fs.readFileSync(path.join(dir_name, element))
+                                var content_encoded = Buffer.from(data).toString('base64');
+                                extract_func(data, file_basename)
 
                                 if( file_basename && file_basename[0] != null) {
                                     if(file_basename[0] in scripts) {
@@ -151,8 +187,8 @@ export function activate(context: ExtensionContext){
                                             editBuilder.replace(range, content_encoded)
                                         }
                                     } else {
+                                        console.log(file_basename)
                                         // https://github.com/microsoft/vscode/issues/16573
-                                        const tab : any = editor.options.tabSize || 4
                                         var line = (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
                                         var pattern = "(?<=scripts\s*:\\s*)."
                                         var re = new RegExp(pattern, "g");
@@ -160,16 +196,12 @@ export function activate(context: ExtensionContext){
 
                                         if(match && match[0] != null) {
                                             let startPos = editor.document.positionAt(match.index);
-                                            
                                             editBuilder.insert(startPos, line)
-                                        } else {
-                                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
-                                            editBuilder.insert(lastLine.range.end, "\n" + line)
-                                            editBuilder.insert(lastLine.range.end, "scripts: \n")
                                         }
                                     }
                                 }
                             });
+                        }
                         });
                     } catch (error : any) {
                         console.log(error)
@@ -178,6 +210,24 @@ export function activate(context: ExtensionContext){
             })
     );
 
+
+    let extract_func = async (data:Buffer, file_basename:string) => {
+        var data_str = data.toString()
+        const pattern = "(?<=\\s*def\\s+).*" + file_basename + ".+"
+        const pattern2 = "(?<=\\s*def\\s+).*run.+"
+        var re = new RegExp(pattern, "g");
+        var match = re.exec(data_str)
+
+        if(match && match[0] != undefined) {
+            scripts_section[' ' + file_basename] = new MarkdownString().appendCodeblock(match[0], "python")
+        } else {
+            var re2 = RegExp(pattern2, "g");
+            var match2 = re2.exec(data_str)
+            if(match2 && match2[0] != undefined) {
+                scripts_section[' ' + file_basename] = new MarkdownString().appendCodeblock(match2[0], "python")
+            }
+        }
+    }
 }
 
 
