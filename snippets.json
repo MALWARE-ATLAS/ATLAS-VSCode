@@ -3,23 +3,23 @@
 		"prefix": "ATLAS, ATLAS-Template",
 		"body": [
 			"meta:",
-    			"\tname: ",
-    			"\tdescription: ",
-    			"\treference: ",
-    			"\thash: ",
-    			"\tauthor: ",
-    			"\tversion: ",
+    			"\tname: \"\"",
+    			"\tdescription: \"\"",
+    			"\treference: \"\"",
+    			"\thash: \"\"",
+    			"\tauthor: \"\"",
+    			"\tversion: \"\"",
 			"",
 			"modules:",
-				"\t- ",
+				"\t- \"\"",
 			"",
 			"scripts:",
-    			"\tsample: ",
+    			"\tsample: \"\"",
 			"",
 			"chain:",
     			"\ts1:",
-        			"\t\tinput: ", 
-        			"\t\tfunc: "
+        			"\t\tinput: \"\"", 
+        			"\t\tfunc: \"\""
 		],
 		"description": "Basic ATLAS rule template."
 	}

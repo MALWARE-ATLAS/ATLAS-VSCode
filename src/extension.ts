@@ -74,6 +74,7 @@ export function activate(context: ExtensionContext){
         vscode.languages.registerCompletionItemProvider(ATLAS, new ATLASCompletionItemProvider(), '.', '$', ':')
     );
 
+    // https://stackoverflow.com/questions/54761955/vs-code-texteditoredit-does-not-insert-a-second-time
     context.subscriptions.push(
         commands.registerCommand(
             "ATLAS.syncScripts", async () => {
@@ -116,18 +117,62 @@ export function activate(context: ExtensionContext){
         commands.registerCommand(
             "ATLAS.fillScripts", async () => {
                 if(vscode.window.activeTextEditor) {
+                    let editor = vscode.window.activeTextEditor
+                    var doc : any = {};
+                    var dir_name = path.dirname(editor.document.uri.path)
+                    var scripts : string[] = [];
+                    const text = editor.document.getText();
+
+                    const EXTENSION = '.py';
+                    var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
+                    const targetFiles = files.filter(file => {
+                        return path.extname(file).toLowerCase() === EXTENSION;
+                    });
+                    
                     try {
-                        var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
-                        files.forEach(element => {
-                            var file_basename = element.match(/^.+?(?=\.atl$)/g)
-                            if( file_basename && file_basename[0] != null) {
-                                var data = fs.readFileSync(element)
+                        doc = yaml.load(text);
+                        scripts = doc['scripts'] || {}
+                        editor.edit(editBuilder => {
+                            targetFiles.forEach(element => {
+                                var file_basename : any = element.match(/^.+?(?=\.py$)/g)
+                                var data = fs.readFileSync(path.join(dir_name, element))
                                 var content_encoded = Buffer.from(data).toString('base64');
-                                // var position = vscode.window.ac
-                            }
+
+                                if( file_basename && file_basename[0] != null) {
+                                    if(file_basename[0] in scripts) {
+                                        var pattern = "(?<=\\s+" + file_basename[0] + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
+                                        var re = new RegExp(pattern, "g");
+                                        var match = re.exec(text)
+                                        
+                                        if(match && match[0] != undefined) {
+                                            let startPos = editor.document.positionAt(match.index);
+                                            let endPos = editor.document.positionAt(match.index + match[0].length);
+                                            let range = new vscode.Range(startPos, endPos)
+                                            editBuilder.replace(range, content_encoded)
+                                        }
+                                    } else {
+                                        // https://github.com/microsoft/vscode/issues/16573
+                                        const tab : any = editor.options.tabSize || 4
+                                        var line = (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
+                                        var pattern = "(?<=scripts\s*:\\s*)."
+                                        var re = new RegExp(pattern, "g");
+                                        var match = re.exec(text)
+
+                                        if(match && match[0] != null) {
+                                            let startPos = editor.document.positionAt(match.index);
+                                            
+                                            editBuilder.insert(startPos, line)
+                                        } else {
+                                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+                                            editBuilder.insert(lastLine.range.end, "\n" + line)
+                                            editBuilder.insert(lastLine.range.end, "scripts: \n")
+                                        }
+                                    }
+                                }
+                            });
                         });
                     } catch (error : any) {
-                        vscode.window.showErrorMessage(error)
+                        console.log(error)
                     }
                 }
             })
