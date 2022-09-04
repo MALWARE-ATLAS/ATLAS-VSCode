@@ -4,6 +4,7 @@ import { ExtensionContext, MarkdownString, commands } from "vscode";
 import * as fs from "fs"
 import * as yaml from "js-yaml"
 import * as path from "path"
+import { PassThrough } from "stream";
 
 
 
@@ -73,10 +74,47 @@ export function activate(context: ExtensionContext){
         vscode.languages.registerCompletionItemProvider(ATLAS, new ATLASCompletionItemProvider(), '.', '$', ':')
     );
 
-
     context.subscriptions.push(
         commands.registerCommand(
             "ATLAS.syncScripts", async () => {
+                if(vscode.window.activeTextEditor) {
+                        let editor = vscode.window.activeTextEditor
+                        var doc : any = {};
+                        var dir_name = path.dirname(editor.document.uri.path)
+                        var scripts : string[] = [];
+                        const text = editor.document.getText();
+                        
+                        try {
+                            doc = yaml.load(text);
+                            scripts = Object.keys(doc.scripts)
+                            editor.edit(editBuilder => {
+                                for(const element of scripts) {
+                                    var data = fs.readFileSync(path.join(dir_name, element + ".py"))
+                                    var content_encoded = Buffer.from(data).toString('base64');
+
+                                    var pattern = "(?<=\\s+" + element + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
+                                    var re = new RegExp(pattern, "g");
+                                    var match = re.exec(text)
+                                    
+                                    if(match && match[0] != null) {
+                                        let startPos = editor.document.positionAt(match.index);
+                                        let endPos = editor.document.positionAt(match.index + match[0].length);
+                                        let range = new vscode.Range(startPos, endPos)
+                                        editBuilder.replace(range, content_encoded)
+                                    }
+                                }
+                            });
+                        } catch (error : any) {
+                            console.log(error)
+                        }
+                    }
+                    
+            })
+    );
+
+    context.subscriptions.push(
+        commands.registerCommand(
+            "ATLAS.fillScripts", async () => {
                 if(vscode.window.activeTextEditor) {
                     try {
                         var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
@@ -92,13 +130,6 @@ export function activate(context: ExtensionContext){
                         vscode.window.showErrorMessage(error)
                     }
                 }
-            })
-    );
-
-    context.subscriptions.push(
-        commands.registerCommand(
-            "ATLAS.fillScripts", async () => {
-
             })
     );
 
