@@ -1,4 +1,4 @@
-![atlas_logo](./media/atlas.png)
+![atlas_logo](./media/logo.png)
 
 # ATLAS Support for Visual Studio Code
 

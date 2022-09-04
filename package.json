@@ -1,7 +1,7 @@
 {
   "name": "atlas",
   "displayName": "ATLAS",
-  "icon": "media/logo.png",
+  "icon": "https://github.com/MALWARE-ATLAS/ATLAS-VSCode/blob/master/media/logo.png",
   "version": "1.0.0",
   "description": "VSCode extension to enhance ATLAS rule development.",
   "repository": {
