@@ -134,7 +134,7 @@ export function activate(context: ExtensionContext){
 
     context.subscriptions.push(
         commands.registerCommand(
-            "ATLAS.fillScripts", async () => {
+            "ATLAS.createScripts", async () => {
                 if(vscode.window.activeTextEditor) {
                     let editor = vscode.window.activeTextEditor
                     var doc : any = {};

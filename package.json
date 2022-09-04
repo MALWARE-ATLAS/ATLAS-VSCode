@@ -1,15 +1,24 @@
 {
   "name": "atlas",
+  "displayName": "ATLAS",
+  "icon": "media/logo.png",
   "version": "1.0.0",
-  "description": "",
+  "description": "VSCode extension to enhance ATLAS rule development.",
+  "repository": {
+		"type": "git",
+		"url": "https://github.com/MALWARE-ATLAS/ATLAS-VSCode"
+	},
+  "bugs": {
+		"url": "https://github.com/MALWARE-ATLAS/ATLAS-VSCode/issues"
+	},
   "main": "./out/extension.js",
   "scripts": {
     "watch": "tsc -watch -p ./",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "keywords": ["atlas", "ATLAS", "MALWARE-ATLAS"],
+  "author": "r00tten",
+  "license": "MIT",
   "devDependencies": {
     "@types/js-yaml": "^4.0.5",
     "@types/node": "^18.7.14",
@@ -22,7 +31,7 @@
   "activationEvents": [
     "workspaceContains:**/*.atl",
     "onCommand:ATLAS.syncScripts",
-    "onCommand:ATLAS.fillScripts"
+    "onCommand:ATLAS.createScripts"
   ],
   "categories": [
     "Snippets"
@@ -45,9 +54,9 @@
         "title": "Sync the scripts section"
       },
       {
-        "command": "ATLAS.fillScripts",
+        "command": "ATLAS.createScripts",
         "category": "ATLAS",
-        "title": "Fill the scripts section"
+        "title": "Create and fill the scripts section"
       }
     ]
   },
