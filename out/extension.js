@@ -121,7 +121,7 @@ function activate(context) {
         if (vscode.window.activeTextEditor) {
             let editor = vscode.window.activeTextEditor;
             var doc = {};
-            var dir_name = path.dirname(editor.document.uri.path);
+            var dir_name = path.dirname(editor.document.uri.fsPath);
             var scripts = [];
             const text = editor.document.getText();
             try {
@@ -153,12 +153,12 @@ function activate(context) {
         if (vscode.window.activeTextEditor) {
             let editor = vscode.window.activeTextEditor;
             var doc = {};
-            var dir_name = path.dirname(editor.document.uri.path);
+            var dir_name = path.dirname(editor.document.uri.fsPath);
             var scripts = [];
             var text = editor.document.getText();
             const tab = editor.options.tabSize || 4;
             const EXTENSION = '.py';
-            var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
+            var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.fsPath));
             const targetFiles = files.filter(file => {
                 return path.extname(file).toLowerCase() === EXTENSION;
             });

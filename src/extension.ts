@@ -4,7 +4,6 @@ import { ExtensionContext, MarkdownString, commands } from "vscode";
 import * as fs from "fs"
 import * as yaml from "js-yaml"
 import * as path from "path"
-import { PassThrough } from "stream";
 
 
 
@@ -99,7 +98,7 @@ export function activate(context: ExtensionContext){
                 if(vscode.window.activeTextEditor) {
                         let editor = vscode.window.activeTextEditor
                         var doc : any = {};
-                        var dir_name = path.dirname(editor.document.uri.path)
+                        var dir_name = path.dirname(editor.document.uri.fsPath)
                         var scripts : string[] = [];
                         const text = editor.document.getText();
                         
@@ -138,13 +137,13 @@ export function activate(context: ExtensionContext){
                 if(vscode.window.activeTextEditor) {
                     let editor = vscode.window.activeTextEditor
                     var doc : any = {};
-                    var dir_name = path.dirname(editor.document.uri.path)
+                    var dir_name = path.dirname(editor.document.uri.fsPath)
                     var scripts : string[] = [];
                     var text = editor.document.getText();
                     const tab : any = editor.options.tabSize || 4
 
                     const EXTENSION = '.py';
-                    var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.path));
+                    var files = fs.readdirSync(path.dirname(vscode.window.activeTextEditor.document.uri.fsPath));
                     const targetFiles = files.filter(file => {
                         return path.extname(file).toLowerCase() === EXTENSION;
                     });

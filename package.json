@@ -2,7 +2,7 @@
   "name": "MALWARE-ATLAS",
   "displayName": "ATLAS",
   "icon": "media/logo.png",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "VSCode extension to enhance ATLAS rule development.",
   "repository": {
 		"type": "git",
@@ -31,6 +31,7 @@
   },
   "activationEvents": [
     "workspaceContains:**/*.atl",
+    "onLanguage:yaml",
     "onCommand:ATLAS.syncScripts",
     "onCommand:ATLAS.createScripts"
   ],
