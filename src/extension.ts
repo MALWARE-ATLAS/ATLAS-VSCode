@@ -102,15 +102,15 @@ export function activate(context: ExtensionContext){
                         var scripts : string[] = [];
                         const text = editor.document.getText();
                         
-                        try {
-                            doc = yaml.load(text);
-                            scripts = Object.keys(doc.scripts)
-                            editor.edit(editBuilder => {
-                                for(const element of scripts) {
+                        doc = yaml.load(text);
+                        scripts = Object.keys(doc.scripts)
+                        editor.edit(editBuilder => {
+                            scripts.forEach(element => {
+                                try {
                                     var data = fs.readFileSync(path.join(dir_name, element + ".py"))
                                     var content_encoded = Buffer.from(data).toString('base64');
                                     extract_func(data, element)
-
+                                    
                                     var pattern = "(?<=\\s+" + element + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
                                     var re = new RegExp(pattern, "g");
                                     var match = re.exec(text)
@@ -121,11 +121,11 @@ export function activate(context: ExtensionContext){
                                         let range = new vscode.Range(startPos, endPos)
                                         editBuilder.replace(range, content_encoded)
                                     }
+                                } catch (error) {
+                                    console.log(error)
                                 }
                             });
-                        } catch (error : any) {
-                            console.log(error)
-                        }
+                        });
                     }
                     
             })
@@ -153,54 +153,54 @@ export function activate(context: ExtensionContext){
                         scripts = doc['scripts'] || []
 
                         editor.edit(editBuilder => {
-                        if(scripts.length == 0) {
-                            var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
-                            var multi_line = "\n\nscripts: \n"
-                            targetFiles.forEach(element => {
-                                var file_basename : any = element.match(/^.+?(?=\.py$)/g)
-                                var data = fs.readFileSync(path.join(dir_name, element))
-                                var content_encoded = Buffer.from(data).toString('base64');
-                                extract_func(data, file_basename)
+                            if(scripts.length == 0) {
+                                var lastLine = editor.document.lineAt(editor.document.lineCount - 1);
+                                var multi_line = "\n\nscripts: \n"
+                                targetFiles.forEach(element => {
+                                    var file_basename : any = element.match(/^.+?(?=\.py$)/g)
+                                    var data = fs.readFileSync(path.join(dir_name, element))
+                                    var content_encoded = Buffer.from(data).toString('base64');
+                                    extract_func(data, file_basename)
 
-                                multi_line += (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
-                                
-                            });
-                            editBuilder.insert(lastLine.range.end, multi_line)
-                        } else {
-                            targetFiles.forEach(element => {
-                                var file_basename : any = element.match(/^.+?(?=\.py$)/g)
-                                var data = fs.readFileSync(path.join(dir_name, element))
-                                var content_encoded = Buffer.from(data).toString('base64');
-                                extract_func(data, file_basename)
+                                    multi_line += (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
+                                    
+                                });
+                                editBuilder.insert(lastLine.range.end, multi_line)
+                            } else {
+                                targetFiles.forEach(element => {
+                                    var file_basename : any = element.match(/^.+?(?=\.py$)/g)
+                                    var data = fs.readFileSync(path.join(dir_name, element))
+                                    var content_encoded = Buffer.from(data).toString('base64');
+                                    extract_func(data, file_basename)
 
-                                if( file_basename && file_basename[0] != null) {
-                                    if(file_basename[0] in scripts) {
-                                        var pattern = "(?<=\\s+" + file_basename[0] + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
-                                        var re = new RegExp(pattern, "g");
-                                        var match = re.exec(text)
-                                        
-                                        if(match && match[0] != undefined) {
-                                            let startPos = editor.document.positionAt(match.index);
-                                            let endPos = editor.document.positionAt(match.index + match[0].length);
-                                            let range = new vscode.Range(startPos, endPos)
-                                            editBuilder.replace(range, content_encoded)
-                                        }
-                                    } else {
-                                        console.log(file_basename)
-                                        // https://github.com/microsoft/vscode/issues/16573
-                                        var line = (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
-                                        var pattern = "(?<=scripts\s*:\\s*)."
-                                        var re = new RegExp(pattern, "g");
-                                        var match = re.exec(text)
+                                    if( file_basename && file_basename[0] != null) {
+                                        if(file_basename[0] in scripts) {
+                                            var pattern = "(?<=\\s+" + file_basename[0] + "\\s*:\\s*(\"|\')).+?(?=\\1\\s*)"
+                                            var re = new RegExp(pattern, "g");
+                                            var match = re.exec(text)
+                                            
+                                            if(match && match[0] != undefined) {
+                                                let startPos = editor.document.positionAt(match.index);
+                                                let endPos = editor.document.positionAt(match.index + match[0].length);
+                                                let range = new vscode.Range(startPos, endPos)
+                                                editBuilder.replace(range, content_encoded)
+                                            }
+                                        } else {
+                                            console.log(file_basename)
+                                            // https://github.com/microsoft/vscode/issues/16573
+                                            var line = (" ".repeat(tab)) + file_basename[0] + ": \"" + content_encoded + "\"" + "\n"
+                                            var pattern = "(?<=scripts\s*:\\s*)."
+                                            var re = new RegExp(pattern, "g");
+                                            var match = re.exec(text)
 
-                                        if(match && match[0] != null) {
-                                            let startPos = editor.document.positionAt(match.index);
-                                            editBuilder.insert(startPos, line)
+                                            if(match && match[0] != null) {
+                                                let startPos = editor.document.positionAt(match.index);
+                                                editBuilder.insert(startPos, line)
+                                            }
                                         }
                                     }
-                                }
-                            });
-                        }
+                                });
+                            }
                         });
                     } catch (error : any) {
                         console.log(error)

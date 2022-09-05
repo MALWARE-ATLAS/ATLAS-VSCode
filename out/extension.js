@@ -124,11 +124,11 @@ function activate(context) {
             var dir_name = path.dirname(editor.document.uri.fsPath);
             var scripts = [];
             const text = editor.document.getText();
-            try {
-                doc = yaml.load(text);
-                scripts = Object.keys(doc.scripts);
-                editor.edit(editBuilder => {
-                    for (const element of scripts) {
+            doc = yaml.load(text);
+            scripts = Object.keys(doc.scripts);
+            editor.edit(editBuilder => {
+                scripts.forEach(element => {
+                    try {
                         var data = fs.readFileSync(path.join(dir_name, element + ".py"));
                         var content_encoded = Buffer.from(data).toString('base64');
                         extract_func(data, element);
@@ -142,11 +142,11 @@ function activate(context) {
                             editBuilder.replace(range, content_encoded);
                         }
                     }
+                    catch (error) {
+                        console.log(error);
+                    }
                 });
-            }
-            catch (error) {
-                console.log(error);
-            }
+            });
         }
     })));
     context.subscriptions.push(vscode_1.commands.registerCommand("ATLAS.createScripts", () => __awaiter(this, void 0, void 0, function* () {
